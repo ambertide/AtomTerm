@@ -2,10 +2,6 @@
 
 namespace NavigableSocket;
 
-include_once 'Socket.php';
-include_once 'NavigationEvent.php';
-
-
 /**
  * Used to create a Socket Server that can be
  * traversed using keyboard.
