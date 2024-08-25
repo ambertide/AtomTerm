@@ -43,16 +43,16 @@ class NavigableSocket extends \TelnetSocket\Socket {
         $event = '';
         switch ($message) {
             case "\e[A":
-                $event = NavigationEvent::NAV_UP_KEY_EVENT;
+                $event = \Navigation\Event::NAV_UP_KEY_EVENT;
                 break;
             case "\e[B":
-                $event = NavigationEvent::NAV_DOWN_KEY_EVENT;
+                $event = \Navigation\Event::NAV_DOWN_KEY_EVENT;
                 break;
             case "\e[C":
-                $event = NavigationEvent::NAV_RIGHT_KEY_EVENT;
+                $event = \Navigation\Event::NAV_RIGHT_KEY_EVENT;
                 break;
             case "\e[D":
-                $event = NavigationEvent::NAV_LEFT_KEY_EVENT;
+                $event = \Navigation\Event::NAV_LEFT_KEY_EVENT;
                 break;
             default:
                 $event = null;
