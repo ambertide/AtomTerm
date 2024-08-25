@@ -4,7 +4,7 @@ namespace Navigation;
 
 abstract class Screen {
     /** Screen we just came from. */
-    private Screen $parent;
+    protected Screen $parent;
     private ScreenType $type;
     private string $title;
 
@@ -19,11 +19,9 @@ abstract class Screen {
     public function __construct(
         ScreenType $type,
         string $title,
-        Screen $parent = null
     ) {
         $this->type = $type;
         $this->title = $title;
-        $this->parent = $parent;
     }
 
     /**

@@ -10,12 +10,12 @@ class Document extends Screen {
     private string $content;
 
     public function __construct(
-        Screen|null $parent = null,
-        string $content
+        string $content,
+        string $title
     ) {
         parent::__construct(
             ScreenType::DOCUMENT,
-            $parent
+            $title
         );
 
         $this->content = $content;

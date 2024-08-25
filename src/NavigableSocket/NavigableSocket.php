@@ -8,6 +8,8 @@ namespace NavigableSocket;
  */
 class NavigableSocket extends \TelnetSocket\Socket {
 
+    private \Navigation\Handler $navigation_handler;
+
     /**
      * Construct a navigable socket instance.
      *
@@ -16,7 +18,12 @@ class NavigableSocket extends \TelnetSocket\Socket {
      * @param int $backlog_count Count of connections that
      * can reside in the backlog.
      */
-    public function __construct(string $ip, int $port, int $backlog_count) {
+    public function __construct(
+        string $ip,
+        int $port,
+        int $backlog_count,
+        \Navigation\Screen $rootScreen
+    ) {
         parent::__construct(
             $ip,
             $port,
@@ -29,6 +36,7 @@ class NavigableSocket extends \TelnetSocket\Socket {
         $this->register_message_callback(function (string $message, \Socket $socket) {
             $this->process_new_message($message, $socket);
         });
+        $this->navigation_handler = new \Navigation\Handler($rootScreen);
     }
 
     /**
@@ -38,24 +46,16 @@ class NavigableSocket extends \TelnetSocket\Socket {
      * @return void
      */
     private function process_new_message(string $message, \Socket $socket) {
-        // Clear the screen.
-        socket_write($socket, "\e[2J");
-        $event = '';
-        switch ($message) {
-            case "\e[A":
-                $event = \Navigation\Event::NAV_UP_KEY_EVENT;
-                break;
-            case "\e[B":
-                $event = \Navigation\Event::NAV_DOWN_KEY_EVENT;
-                break;
-            case "\e[C":
-                $event = \Navigation\Event::NAV_RIGHT_KEY_EVENT;
-                break;
-            case "\e[D":
-                $event = \Navigation\Event::NAV_LEFT_KEY_EVENT;
-                break;
-            default:
-                $event = null;
+        $event = TerminalUtils::convert_message_to_event($message);
+        // Send the next event to the navigation handler.
+        $should_rerender = $this->navigation_handler->proccess_event($event);
+        error_log('Should re-render is' . ($should_rerender ? 'true' : 'false'));
+        if ($should_rerender) {
+            TerminalUtils::clear($socket);
+            socket_write(
+                $socket,
+                $this->navigation_handler->render()
+            );
         }
     }
 

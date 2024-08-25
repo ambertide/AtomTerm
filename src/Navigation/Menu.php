@@ -17,21 +17,18 @@ class Menu extends Screen {
      *
      * @param \Navigation\Screen|null $parent
      * @param string $description Summary on top of the menu
-     * @param array $children Children hyperlinks to
-     * other navigation elements.
      */
     public function __construct(
-        Screen|null $parent = null,
         string $description,
-        array $children
+        string $title
     ) {
         parent::__construct(
             ScreenType::MENU,
-            $parent
+            $title
         );
 
         $this->description = $description;
-        $this->children = $children;
+        $this->children = [];
     }
 
     public function render(): string {
@@ -72,5 +69,15 @@ class Menu extends Screen {
      */
     public function hovered_child(): Screen {
         return $this->children[$this->hovered_index];
+    }
+
+    /**
+     * Add a screen as a child to this screen.
+     * @param \Navigation\Screen $screen Screen to add.
+     * @return void
+     */
+    public function add_child(Screen $screen) {
+        $this->children[] = $screen;
+        $screen->parent = $this;
     }
 }

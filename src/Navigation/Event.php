@@ -9,4 +9,5 @@ enum Event {
     case NAV_DOWN_KEY_EVENT;
     case NAV_ENTER_KEY_EVENT;
     case NAV_BACK_KEY_EVENT;
+    case NAV_INCOMPREHENSIBLE_EVENT;
 }
