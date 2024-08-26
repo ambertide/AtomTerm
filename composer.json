@@ -3,7 +3,8 @@
         "psr-4": {
             "NavigableSocket\\": "src/NavigableSocket",
             "TelnetSocket\\": "src/TelnetSocket",
-            "Navigation\\": "src/Navigation"
+            "Navigation\\": "src/Navigation",
+            "FSNavigation\\": "src/FSNavigation"
         }
     }
 }
