@@ -19,12 +19,13 @@ class NavigationParser {
      */
     private function parse_document(string $path): \Navigation\Document {
         try {
-        $contents = file_get_contents($path);
-        [$title, $text] = explode(PHP_EOL, $contents, 2);
-        return new \Navigation\Document(
-            $text,
-            $title
-        );
+            error_log("Parsing $path");
+            $contents = file_get_contents($path);
+            [$title, $text] = explode(PHP_EOL, $contents, 2);
+            return new \Navigation\Document(
+                $text,
+                $title
+            );
         } catch (\Exception $e) {
             error_log($e->getMessage());
             return new \Navigation\Document(
@@ -43,7 +44,7 @@ class NavigationParser {
      */
     private function parse_meta(string $path) {
         try {
-            error_log($path);
+            error_log("Parsing $path");
             $contents = file_get_contents($path);
             $metadata = json_decode($contents);
             if ($metadata) {
@@ -66,13 +67,14 @@ class NavigationParser {
      * @return \Navigation\Menu a menu object containing the directory contents.
      */
     private function parse_menu(string $path): \Navigation\Menu {
+        error_log("Parsing $path");
         $menu_directory_iterator = new \FilesystemIterator(
             $path,
             \FilesystemIterator::SKIP_DOTS
             | \FilesystemIterator::CURRENT_AS_FILEINFO
         );
 
-        $possible_meta_file = $menu_directory_iterator->getPathname() . DIRECTORY_SEPARATOR . 'meta.json';
+        $possible_meta_file = $path . DIRECTORY_SEPARATOR . 'meta.json';
         if (file_exists($possible_meta_file)) {
             // If a metadata file exists, get the data about the menu from there.
             $menu = $this->parse_meta($possible_meta_file);
@@ -80,7 +82,7 @@ class NavigationParser {
             // Otherwise init a default one.
             $menu = new \Navigation\Menu(
                 '',
-                $menu_directory_iterator->getFilename()
+                'MISSING'
             );
         }
 

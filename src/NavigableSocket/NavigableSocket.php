@@ -30,13 +30,18 @@ class NavigableSocket extends \TelnetSocket\Socket {
             $backlog_count,
             3
         );
+        $this->navigation_handler = new \Navigation\Handler($rootScreen);
         $this->register_connection_callback(function (\Socket $socket) {
+            TerminalUtils::clear($socket);
+            socket_write(
+                $socket,
+                $this->navigation_handler->render()
+            );
             error_log('Connection established.');
         });
         $this->register_message_callback(function (string $message, \Socket $socket) {
             $this->process_new_message($message, $socket);
         });
-        $this->navigation_handler = new \Navigation\Handler($rootScreen);
     }
 
     /**
