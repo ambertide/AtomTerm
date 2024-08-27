@@ -11,12 +11,13 @@ class TerminalUtils {
     private static $event_map = [
         "\e[A" => \Navigation\Event::NAV_UP_KEY_EVENT,
         "\e[B" => \Navigation\Event::NAV_DOWN_KEY_EVENT,
-        "\e[C" => \Navigation\Event::NAV_RIGHT_KEY_EVENT,
-        "\e[D" => \Navigation\Event::NAV_LEFT_KEY_EVENT,
+        "\e[C" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
+        "\e[D" => \Navigation\Event::NAV_BACK_KEY_EVENT,
         "\eE" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
         "\n" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
         "\r" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
-        "\n\r" => \Navigation\Event::NAV_ENTER_KEY_EVENT
+        "\n\r" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
+        "\r\x00" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
     ];
 
     /**
@@ -24,7 +25,6 @@ class TerminalUtils {
      * @param \Socket $socket Socket to clear the screen from.
      */
     public static function clear(\Socket $socket) {
-        socket_write($socket, "\e[2J");
     }
 
     /**
@@ -38,8 +38,6 @@ class TerminalUtils {
         if (array_key_exists($message, self::$event_map)) {
             return self::$event_map[$message];
         }
-        error_log("Cannot decode $message");
-        var_dump(unpack('C*', $message));
         return \Navigation\Event::NAV_INCOMPREHENSIBLE_EVENT;
     }
 }

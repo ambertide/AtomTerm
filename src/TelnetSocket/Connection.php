@@ -32,6 +32,8 @@ class Connection {
      */
     public function clear_screen() {
         $this->write("\e[2J");
+        // Move cursor to top of screen.
+        $this->write("\e[0;0H");
     }
 
     public function read(): bool|string {
