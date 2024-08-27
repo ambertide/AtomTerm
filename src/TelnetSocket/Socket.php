@@ -10,7 +10,7 @@ class Socket
     private \Socket $socket;
     private int $backlogCount;
     private int $buffer_length;
-    private array $connected_sockets;
+    private array $connections;
     private \Closure $on_message;
     private \Closure $on_connection; 
 
@@ -28,7 +28,7 @@ class Socket
         int $buffer_length
     ) {
         $this->backlogCount = $backlog_count;
-        $this->connected_sockets = [];
+        $this->connections = [];
         print('Creating socket...' . PHP_EOL);
         $this->socket = socket_create(
             AF_INET,
@@ -99,10 +99,10 @@ class Socket
      */
     protected function process_connections(): \Generator
     {
-        foreach ($this->connected_sockets as $socket) {
-            $buffer = socket_read($socket, $this->buffer_length, PHP_BINARY_READ);
+        foreach ($this->connections as $conn) {
+            $buffer = $conn->read();
             if ($buffer) {
-                $this->on_message->call($this, $buffer, $socket);
+                $this->on_message->call($this, $buffer, $conn);
                 yield true;
             } else {
                 yield false;
@@ -123,12 +123,42 @@ class Socket
             $incoming_socket = @socket_accept($this->socket);
             if ($incoming_socket !== false) {
                 // If there is an incoming socket register it.
-                socket_set_nonblock($incoming_socket);
-                $this->connected_sockets[] = $incoming_socket;
-                $this->on_connection->call($this, $incoming_socket);
+                $connection = new Connection($incoming_socket, $this->buffer_length);
+                $this->option_negotiation($connection);
+                $this->connections[] = $connection;
+                $this->on_connection->call($this, $connection);
             }
             $this->check_socket_error();             
             yield $incoming_socket;
         } while (true);
+    }
+
+    /**
+     * Negotiate with the Telnet client over which
+     * options to use.
+     * 
+     * @return bool true if all options are accepted.
+     */
+    private function option_negotiation(Connection $conn): bool {
+        // https://stackoverflow.com/a/4532395
+        // explains this better than I do,
+        // but sets the telnet to send me data directly.
+        $order_linemode_neg = Command::IAC->and(
+            Command::DO,
+            Command::LINEMODE
+        );
+        $conn->write($order_linemode_neg);
+        $turn_off_linemode = Command::subnegotiate(
+            Command::LINEMODE->value,
+            0
+        );
+        $conn->write($turn_off_linemode);
+        $takeover_echo = Command::IAC->and(
+            Command::WILL,
+            Command::ECHO
+        );
+        $conn->write($takeover_echo);
+        // Probably decode this at one point who knows.
+        return true;
     }
 }

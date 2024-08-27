@@ -31,16 +31,13 @@ class NavigableSocket extends \TelnetSocket\Socket {
             3
         );
         $this->navigation_handler = new \Navigation\Handler($rootScreen);
-        $this->register_connection_callback(function (\Socket $socket) {
-            TerminalUtils::clear($socket);
-            socket_write(
-                $socket,
-                $this->navigation_handler->render()
-            );
+        $this->register_connection_callback(function (\TelnetSocket\Connection $conn) {
+            $conn->clear_screen();
+            $conn->write($this->navigation_handler->render());
             error_log('Connection established.');
         });
-        $this->register_message_callback(function (string $message, \Socket $socket) {
-            $this->process_new_message($message, $socket);
+        $this->register_message_callback(function (string $message, \TelnetSocket\Connection $conn) {
+            $this->process_new_message($message, $conn);
         });
     }
 
@@ -50,17 +47,17 @@ class NavigableSocket extends \TelnetSocket\Socket {
      * @param \Socket $socket Socket the message arriving from.
      * @return void
      */
-    private function process_new_message(string $message, \Socket $socket) {
+    private function process_new_message(
+        string $message,
+        \TelnetSocket\Connection $connection
+    ) {
         $event = TerminalUtils::convert_message_to_event($message);
         // Send the next event to the navigation handler.
         $should_rerender = $this->navigation_handler->proccess_event($event);
-        error_log('Should re-render is' . ($should_rerender ? 'true' : 'false'));
+        error_log('Should re-render is ' . ($should_rerender ? 'true' : 'false'));
         if ($should_rerender) {
-            TerminalUtils::clear($socket);
-            socket_write(
-                $socket,
-                $this->navigation_handler->render()
-            );
+            $connection->clear_screen();
+            $connection->write($this->navigation_handler->render());
         }
     }
 
