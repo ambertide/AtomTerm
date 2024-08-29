@@ -18,14 +18,8 @@ class TerminalUtils {
         "\r" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
         "\n\r" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
         "\r\x00" => \Navigation\Event::NAV_ENTER_KEY_EVENT,
+        ".\x00" => \Navigation\Event::NAV_BACK_KEY_EVENT
     ];
-
-    /**
-     * Clear user's terminal.
-     * @param \Socket $socket Socket to clear the screen from.
-     */
-    public static function clear(\Socket $socket) {
-    }
 
     /**
      * Convert raw message to \Navigation\Event instance.
