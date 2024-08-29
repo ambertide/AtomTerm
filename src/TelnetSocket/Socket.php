@@ -14,9 +14,6 @@ class Socket
 
     private int $timeout;
 
-    private bool $should_close = false;
-
-
     /**
      * Construct a TelnetSocket.
      *

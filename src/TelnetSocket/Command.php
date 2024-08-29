@@ -14,6 +14,7 @@ enum Command: int {
     case DONT = 254;
     case SB = 250;
     case SE = 240;
+    case NAWS = 31;
     case LINEMODE = 34;
     case ECHO = 1;
 
@@ -29,7 +30,7 @@ enum Command: int {
     private static function convert(int ...$values): string {
         $output = '';
         foreach ($values as $value) {
-            $output .= pack('c*', $value);
+            $output .= pack('C*', $value);
         }
         return $output;
     }
@@ -61,5 +62,19 @@ enum Command: int {
             self::SE->value
         ];
         return self::convert(...$commands);
+    }
+
+    /**
+     * Convert bytestring to readable commands.
+     * @param string $payload payload to convert.
+     * @return string Converted to commands
+     */
+    public static function decode(string $payload): string {
+        $commands = [];
+        $payload_chars = unpack('C*', $payload);
+        foreach ($payload_chars as $command_character) {
+            $commands[] = self::tryFrom($command_character)->name ?? 'UNDEF';
+        }
+        return implode(' ', $commands);
     }
 }

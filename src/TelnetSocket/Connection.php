@@ -15,6 +15,13 @@ class Connection {
     private int $last_message_timestamp; 
     private bool $ayt_sent;
 
+    /**
+     * If filled, waiting for an answer from the VT102 connection,
+     * run the raport when it is fired.
+     * @var \Closure function to run on answer.
+     */
+    private \Closure|null $on_raport;
+
     public function __construct(\Socket $socket, int $buffer_length) {
         socket_set_nonblock($socket);
         $this->socket = $socket;
@@ -23,6 +30,8 @@ class Connection {
         $this->created_at = time();
         $this->last_message_timestamp = $this->created_at;
         $this->ayt_sent = false;
+        $this->flush_read_buffer();
+        $this->determine_terminal_properties();
     }
 
     /**
@@ -35,6 +44,21 @@ class Connection {
     } 
 
     /**
+     * Move cursor in the terminal.
+     *
+     * @return void
+     */
+
+    private function move_cursor(int $x_offset, int $y_offset) {
+        $this->write(
+            "\e[" .
+            $x_offset .
+            ';' .
+            $y_offset . 'H'
+        );
+    }
+
+    /**
      * Ask terminal client of the connection
      * to clear itself.
      * @return void
@@ -42,16 +66,51 @@ class Connection {
     public function clear_screen() {
         $this->write("\e[2J");
         // Move cursor to top of screen.
-        $this->write("\e[0;0H");
+        $this->move_cursor(0, 0);
     }
 
-    public function read(): bool|string {
+    /**
+     * Read 16-bit and convert it into a number.
+     * @return int
+     */
+    private function read_short_raw(): int {
+        try {
+            $message = socket_read(
+                $this->socket,
+                2,
+                PHP_BINARY_READ
+            );
+            $number = array_values(unpack('n', $message));
+            if (count($number) > 0) {
+                return $number[0];
+            } else {
+                return 0;
+            }
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Read from the socket connection.
+     * @return string message, empty string if no message.
+     */
+    public function read(): string {
         $message = socket_read(
             $this->socket,
             $this->buffer_length,
             PHP_BINARY_READ
         );
+
         if ($message) {
+            if ($this->on_raport && $message[0] === "\xFF") {
+                // If on raport callback attached, call and unset.
+                $raport_sucessful = $this->on_raport->call($this, $message);
+                if ($raport_sucessful) {
+                    $this->on_raport = null;
+                    return '';
+                }
+            }
             // Unset hang up commmiters.
             $this->ayt_sent = false;
             $this->last_message_timestamp = time();
@@ -80,8 +139,8 @@ class Connection {
      */
     public function close_if_timed_out(int $timeout) {
         $now = time();
-        $elapsed_time = $now - $timeout;
-        if (($now - $elapsed_time) > $timeout) {
+        $elapsed_time = $now - $this->last_message_timestamp;
+        if ($elapsed_time > $timeout) {
             if ($this->ayt_sent) {
                 // If AYT already sent without answer
                 // close connection.
@@ -111,4 +170,52 @@ class Connection {
             }
         }
     }
+
+    /**
+     * Flush the input buffer from the terminal.
+     * @return void
+     */
+    private function flush_read_buffer() {
+        while (($this->read()) !== "" && (time() - $this->created_at) > 1) {}
+    }
+
+    private function ask_raport(
+        string $query,
+        \Closure $callback
+    ) {
+        // Set up the callback for a query.
+        $this->on_raport = $callback;
+        // Fire the query.
+        $this->write($query);
+    }
+
+    /**
+     * Determine size and properties of the terminal connecting.
+     * @return void
+     */
+    private function determine_terminal_properties() {
+        $term_props = new TerminalProperties();
+        $this->ask_raport(
+            Command::IAC->and(
+                Command::DO,
+                Command::NAWS
+            ),
+            function (string $message) use (&$term_props) {
+                try {
+                    $message = Command::decode($message);
+                    if ($message === 'IAC SB NAWS') {
+                        $term_props->w = $this->read_short_raw();
+                        $term_props->h = $this->read_short_raw();
+                        var_dump($term_props); 
+                    }
+                    return false;
+                } catch (\Exception $e) {
+                    $term_props->w = 80;
+                    $term_props->h = 80;
+                    error_log('Raport failed with ' . $e->getMessage());
+                    return false;
+                } 
+            }
+        );
+    } 
 }
