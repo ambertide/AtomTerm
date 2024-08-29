@@ -96,6 +96,11 @@ class Connection {
         return false;
     }
 
+    /**
+     * Write text to the screen one character at a time.
+     * @param string $text Text to write.
+     * @return void
+     */
     public function write_text(string $text) {
         $characters = mb_str_split($text);
         foreach($characters as $char) {
