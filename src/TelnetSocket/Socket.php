@@ -14,6 +14,8 @@ class Socket
 
     private int $timeout;
 
+    private bool $should_close = false;
+
 
     /**
      * Construct a TelnetSocket.
@@ -33,24 +35,24 @@ class Socket
     ) {
         $this->backlogCount = $backlog_count;
         $this->connections = [];
-        print('Creating socket...' . PHP_EOL);
+        error_log('Establish socket...');
         $this->socket = socket_create(
             AF_INET,
             SOCK_STREAM,
             SOL_TCP
         );
         $this->check_socket_error();             
-        print('Binding socket...' . PHP_EOL);
+        error_log('Binding socket...');
         socket_bind(
             $this->socket,
             $ip,
             $port
         );
-        print('Socket Bound' . PHP_EOL);
+        error_log('Socket Bound');
         $this->check_socket_error();             
         // Don't block on connections.
         socket_set_nonblock($this->socket);
-        print('Socket listening...' . PHP_EOL);
+        error_log('Socket listening...');
         socket_listen($this->socket, $this->backlogCount);
         $this->check_socket_error();
         $this->buffer_length = $buffer_length;
@@ -139,18 +141,16 @@ class Socket
      */
     protected function accept_connections(): \Generator
     {
-        do {
-            $incoming_socket = @socket_accept($this->socket);
-            if ($incoming_socket !== false) {
-                // If there is an incoming socket register it.
-                $connection = new Connection($incoming_socket, $this->buffer_length);
-                $this->option_negotiation($connection);
-                $this->connections[$connection->id()] = $connection;
-                $this->on_connect($connection);
-            }
-            $this->check_socket_error();             
-            yield $incoming_socket;
-        } while (true);
+        $incoming_socket = @socket_accept($this->socket);
+        if ($incoming_socket !== false) {
+            // If there is an incoming socket register it.
+            $connection = new Connection($incoming_socket, $this->buffer_length);
+            $this->option_negotiation($connection);
+            $this->connections[$connection->id()] = $connection;
+            $this->on_connect($connection);
+        }
+        $this->check_socket_error();             
+        yield $incoming_socket;
     }
 
     /**
