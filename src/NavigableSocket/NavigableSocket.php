@@ -87,7 +87,25 @@ class NavigableSocket extends \TelnetSocket\Socket {
         $should_rerender = $navigation_handler->proccess_event($event);
         if ($should_rerender) {
             $connection->clear_screen();
-            $connection->write($navigation_handler->render());
+            $text = $navigation_handler->render();
+            $characters = mb_str_split($text);
+            foreach($characters as $char) {
+                if ($char === PHP_EOL) {
+                    $connection->write(pack('c*', 12, 12));
+                } else {
+                    $connection->write($char);
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove navigation handler for connection.
+     */
+    protected function on_close(\TelnetSocket\Connection $connection) {
+        parent::on_close($connection);
+        if ($this->get_nav_handler($connection)) {
+            unset($this->navigation_handlers[$connection->id()]);
         }
     }
 
