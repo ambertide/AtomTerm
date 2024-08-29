@@ -17,6 +17,9 @@ enum Command: int {
     case LINEMODE = 34;
     case ECHO = 1;
 
+    // Are you there;
+    case AYT = 246;
+
     /**
      * Encode a group of decoded commands
      *

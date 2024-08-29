@@ -30,7 +30,8 @@ class NavigableSocket extends \TelnetSocket\Socket {
             $ip,
             $port,
             $backlog_count,
-            3
+            3,
+            120
         );
         $this->register_connection_callback(function (\TelnetSocket\Connection $conn) {
             $this->establish_connection($conn);

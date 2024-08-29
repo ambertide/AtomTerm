@@ -12,20 +12,28 @@ class Socket
     private int $buffer_length;
     private array $connections;
     private \Closure $on_message;
-    private \Closure $on_connection; 
+    private \Closure $on_connection;
+    
+    private \Closure $on_close;
+
+    private int $timeout;
 
 
     /**
      * Construct a TelnetSocket.
      *
      * @param integer $port Port the socket is acting on.
-     * @param integer $backlogCount Count of connections on backlog.
+     * @param integer $backlog_count Count of connections on backlog.
+     * @param integer $buffer_length number of bytes to read.
+     * @param integer $timeout number of seconds to pass without
+     * reply for a socket to be closed.
      */
     public function __construct(
         string $ip,
         int $port,
         int $backlog_count,
-        int $buffer_length
+        int $buffer_length,
+        int $timeout
     ) {
         $this->backlogCount = $backlog_count;
         $this->connections = [];
@@ -50,6 +58,7 @@ class Socket
         socket_listen($this->socket, $this->backlogCount);
         $this->check_socket_error();
         $this->buffer_length = $buffer_length;
+        $this->timeout = $timeout;
     }
 
     /**
@@ -72,6 +81,16 @@ class Socket
      */
     protected function register_message_callback(\Closure $on_message) {
         $this->on_message = $on_message;
+    }
+
+    /**
+     * Register a callback to execute when a socket connection
+     * is closed.
+     * @param \Closure $on_close Callback to execute.
+     * @return void
+     */
+    protected function register_close_callback(\Closure $on_close) {
+        $this->on_close = $on_close;
     }
 
     /**
@@ -100,15 +119,26 @@ class Socket
     protected function process_connections(): \Generator
     {
         foreach ($this->connections as $conn) {
-            $buffer = $conn->read();
-            if ($buffer) {
-                $this->on_message->call($this, $buffer, $conn);
-                yield true;
-            } else {
+            $connection_closed = $conn->close_if_timed_out($this->timeout);
+            if ($connection_closed) {
+                // If connection is done, delete it from connections
+                // array and then call on_close callback if it exists.
+                unset($this->connections[$conn->id()]);
+                if ($this->on_close) {
+                    $this->on_close->call($this, $conn);
+                }
                 yield false;
+            } else {
+                // Otherwise read a message.
+                $buffer = $conn->read();
+                if ($buffer) {
+                    $this->on_message->call($this, $buffer, $conn);
+                    yield true;
+                } else {
+                    yield false;
+                }
             }
         }
-        yield false;
     }
 
     /**
@@ -125,7 +155,7 @@ class Socket
                 // If there is an incoming socket register it.
                 $connection = new Connection($incoming_socket, $this->buffer_length);
                 $this->option_negotiation($connection);
-                $this->connections[] = $connection;
+                $this->connections[$connection->id()] = $connection;
                 $this->on_connection->call($this, $connection);
             }
             $this->check_socket_error();             
