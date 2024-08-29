@@ -75,7 +75,7 @@ class Socket
      * @return void
      */
     protected function on_message_recieved(string $message, Connection $connection) {
-        error_log('Recieved message from' . $connection->id());
+        error_log('Recieved message from ' . $connection->id());
     }
 
     /**

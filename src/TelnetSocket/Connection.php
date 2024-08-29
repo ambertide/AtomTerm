@@ -19,7 +19,7 @@ class Connection {
         socket_set_nonblock($socket);
         $this->socket = $socket;
         $this->buffer_length = $buffer_length;
-        $this->_id = random_bytes(12);
+        $this->_id = bin2hex(random_bytes(12));
         $this->created_at = time();
         $this->last_message_timestamp = $this->created_at;
         $this->ayt_sent = false;
@@ -51,7 +51,7 @@ class Connection {
             $this->buffer_length,
             PHP_BINARY_READ
         );
-        if (!$message) {
+        if ($message) {
             // Unset hang up commmiters.
             $this->ayt_sent = false;
             $this->last_message_timestamp = time();
@@ -94,5 +94,16 @@ class Connection {
             $this->ayt_sent = true;
         }
         return false;
+    }
+
+    public function write_text(string $text) {
+        $characters = mb_str_split($text);
+        foreach($characters as $char) {
+            if ($char === PHP_EOL) {
+                $this->write("\n\r");
+            } else {
+                $this->write($char);
+            }
+        }
     }
 }
