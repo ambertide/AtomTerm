@@ -33,12 +33,6 @@ class NavigableSocket extends \TelnetSocket\Socket {
             3,
             120
         );
-        $this->register_connection_callback(function (\TelnetSocket\Connection $conn) {
-            $this->establish_connection($conn);
-        });
-        $this->register_message_callback(function (string $message, \TelnetSocket\Connection $conn) {
-            $this->process_new_message($message, $conn);
-        });
     }
 
     /**
@@ -69,30 +63,24 @@ class NavigableSocket extends \TelnetSocket\Socket {
     }
 
     /**
-     * Establish a connection and bind a navigation handler to it.
-     * @param \TelnetSocket\Connection $connection Create a connection
-     * @return void
+     * Bind the nav handler to established connection.
      */
-    private function establish_connection(
-        \TelnetSocket\Connection $connection
-    ) {
+    protected function on_connect(\TelnetSocket\Connection $connection) {
+        parent::on_connect($connection);
         $navigation_handler = $this->bind_nav_handler($connection);
         $connection->write(
             $navigation_handler->render()
         );
-        error_log('Connection established.');
     }
 
     /**
      * Process a newly arriving message and clear the user screen.
-     * @param string $message message to process
-     * @param \Socket $socket Socket the message arriving from.
-     * @return void
      */
-    private function process_new_message(
+    protected function on_message_recieved(
         string $message,
         \TelnetSocket\Connection $connection
     ) {
+        parent::on_message_recieved($message, $connection);
         $navigation_handler = $this->get_nav_handler($connection);
         $event = TerminalUtils::convert_message_to_event($message);
         // Send the next event to the navigation handler.

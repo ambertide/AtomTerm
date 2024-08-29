@@ -11,10 +11,6 @@ class Socket
     private int $backlogCount;
     private int $buffer_length;
     private array $connections;
-    private \Closure $on_message;
-    private \Closure $on_connection;
-    
-    private \Closure $on_close;
 
     private int $timeout;
 
@@ -62,35 +58,31 @@ class Socket
     }
 
     /**
-     * Register a callback function that gets triggered when
-     * a new socket is connected.
-     * @param \Closure $on_connection Given the newly connected socket
-     * as its argument.
+     * Callback to run after a connection is established
+     * @param \TelnetSocket\Connection $connection Established connection.
      * @return void
      */
-    protected function register_connection_callback(\Closure $on_connection) {
-        $this->on_connection = $on_connection;
+    protected function on_connect(Connection $connection) {
+        error_log('Connection established to ' . $connection->id());
     }
 
     /**
-     * Register a callback to be called when a new message
-     * is received.
-     * @param \Closure $on_message A callback function that gets the
-     * message and the socket as its argument.
+     * Callback to run after a message is received.
+     * @param string $message message to process
+     * @param Connection $connection Connection the message arriving from.
      * @return void
      */
-    protected function register_message_callback(\Closure $on_message) {
-        $this->on_message = $on_message;
+    protected function on_message_recieved(string $message, Connection $connection) {
+        error_log('Recieved message from' . $connection->id());
     }
 
     /**
-     * Register a callback to execute when a socket connection
-     * is closed.
-     * @param \Closure $on_close Callback to execute.
+     * Callback to run after a connection is closed.
+     * @param Connection $connection connection that was just closed.
      * @return void
      */
-    protected function register_close_callback(\Closure $on_close) {
-        $this->on_close = $on_close;
+    protected function on_close(Connection $connection) {
+        error_log('Connection closed to ' . $connection->id());
     }
 
     /**
@@ -124,15 +116,13 @@ class Socket
                 // If connection is done, delete it from connections
                 // array and then call on_close callback if it exists.
                 unset($this->connections[$conn->id()]);
-                if ($this->on_close) {
-                    $this->on_close->call($this, $conn);
-                }
+                $this->on_close($conn);
                 yield false;
             } else {
                 // Otherwise read a message.
                 $buffer = $conn->read();
                 if ($buffer) {
-                    $this->on_message->call($this, $buffer, $conn);
+                    $this->on_message_recieved($buffer, $conn);
                     yield true;
                 } else {
                     yield false;
@@ -156,7 +146,7 @@ class Socket
                 $connection = new Connection($incoming_socket, $this->buffer_length);
                 $this->option_negotiation($connection);
                 $this->connections[$connection->id()] = $connection;
-                $this->on_connection->call($this, $connection);
+                $this->on_connect($connection);
             }
             $this->check_socket_error();             
             yield $incoming_socket;
