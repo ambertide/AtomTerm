@@ -10,10 +10,13 @@ class Connection {
     private \Socket $socket;
     private int $buffer_length;
 
+    private string $_id;
+
     public function __construct(\Socket $socket, int $buffer_length) {
         socket_set_nonblock($socket);
         $this->socket = $socket;
         $this->buffer_length = $buffer_length;
+        $this->_id = random_bytes(12);
     }
 
     /**
@@ -42,5 +45,13 @@ class Connection {
             $this->buffer_length,
             PHP_BINARY_READ
         );
+    }
+
+    /**
+     * Get the unique id of the socket.
+     * @return string Get the id of the socket.
+     */
+    public function id(): string {
+        return $this->_id;
     }
 }
