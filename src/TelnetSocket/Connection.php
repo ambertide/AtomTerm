@@ -16,11 +16,11 @@ class Connection {
     private bool $ayt_sent;
 
     /**
-     * If filled, waiting for an answer from the VT102 connection,
-     * run the raport when it is fired.
+     * If filled, waiting for an answer from the telnet connection,
+     * run the callback when it is fired.
      * @var \Closure function to run on answer.
      */
-    private \Closure|null $on_raport;
+    private \Closure|null $on_telnet_answer;
 
     public function __construct(\Socket $socket, int $buffer_length) {
         socket_set_nonblock($socket);
@@ -103,11 +103,11 @@ class Connection {
         );
 
         if ($message) {
-            if ($this->on_raport && $message[0] === "\xFF") {
+            if ($this->on_telnet_answer && $message[0] === "\xFF") {
                 // If on raport callback attached, call and unset.
-                $raport_sucessful = $this->on_raport->call($this, $message);
+                $raport_sucessful = $this->on_telnet_answer->call($this, $message);
                 if ($raport_sucessful) {
-                    $this->on_raport = null;
+                    $this->on_telnet_answer = null;
                     return '';
                 }
             }
@@ -179,12 +179,21 @@ class Connection {
         while (($this->read()) !== "" && (time() - $this->created_at) > 1) {}
     }
 
-    private function ask_raport(
+    /**
+     * Send a query to a TELNET client and register a callback
+     * for when the answer is returned. 
+     * @param string $query Query to send.
+     * @param \Closure $callback Callback to execute on
+     * new messages, if the query returns true, it will
+     * no longer be called.
+     * @return void
+     */
+    private function telnet_negotiate(
         string $query,
         \Closure $callback
     ) {
         // Set up the callback for a query.
-        $this->on_raport = $callback;
+        $this->on_telnet_answer = $callback;
         // Fire the query.
         $this->write($query);
     }
@@ -195,7 +204,8 @@ class Connection {
      */
     private function determine_terminal_properties() {
         $term_props = new TerminalProperties();
-        $this->ask_raport(
+        $this->telnet_negotiate(
+            // Ask TELNET client to use RFC1073 Window Size Option
             Command::IAC->and(
                 Command::DO,
                 Command::NAWS
@@ -203,10 +213,17 @@ class Connection {
             function (string $message) use (&$term_props) {
                 try {
                     $message = Command::decode($message);
+                    // When tellnet starts subnegotiating
+                    // capture it and extract the window sizes.
                     if ($message === 'IAC SB NAWS') {
                         $term_props->w = $this->read_short_raw();
                         $term_props->h = $this->read_short_raw();
-                        var_dump($term_props); 
+                        return true;
+                    } else if ($message === 'IAC WONT NAWS') {
+                        // This means TELNET client doesn't use NAWS.
+                        $term_props->w = 80;
+                        $term_props->h = 80;
+                        return true;
                     }
                     return false;
                 } catch (\Exception $e) {
