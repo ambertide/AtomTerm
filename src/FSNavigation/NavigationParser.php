@@ -21,7 +21,13 @@ class NavigationParser {
         try {
             error_log("Parsing $path");
             $contents = file_get_contents($path);
-            [$title, $text] = explode(PHP_EOL, $contents, 2);
+            $data = explode(PHP_EOL, $contents, 2);
+            if (count($data) === 2) {
+                [$title, $text] = $data;
+            } else {
+                $title = basename($path);
+                $text = $contents;
+            }
             return new \Navigation\Document(
                 $text,
                 $title

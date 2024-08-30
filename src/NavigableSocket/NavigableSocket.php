@@ -68,10 +68,8 @@ class NavigableSocket extends \TelnetSocket\Socket {
     protected function on_connect(\TelnetSocket\Connection $connection) {
         parent::on_connect($connection);
         $connection->clear_screen();
-        $navigation_handler = $this->bind_nav_handler($connection);
-        $connection->write_text(
-            $navigation_handler->render()
-        );
+        $this->bind_nav_handler($connection);
+        $connection->write('Setting up connection...');
     }
 
     /**
@@ -85,10 +83,21 @@ class NavigableSocket extends \TelnetSocket\Socket {
         $navigation_handler = $this->get_nav_handler($connection);
         $event = TerminalUtils::convert_message_to_event($message);
         // Send the next event to the navigation handler.
-        $should_rerender = $navigation_handler->proccess_event($event);
-        if ($should_rerender) {
-            $connection->clear_screen();
-            $connection->write_text($navigation_handler->render()); 
+        if ($connection->properties()->initialized) {
+            // Wait for terminal properties to be fetched.
+            $should_rerender = $navigation_handler->proccess_event($event);
+            if (!$navigation_handler->first_render_occurred()) {
+                $navigation_handler->first_render_has_occurred();
+            }
+            if ($should_rerender) {
+                $connection->clear_screen();
+                $connection->write_text($navigation_handler->render(
+                    $connection->properties()->w,
+                    $connection->properties()->h
+                )); 
+            } 
+        } else {
+            $connection->write('Setting up connection...');
         }
     }
 

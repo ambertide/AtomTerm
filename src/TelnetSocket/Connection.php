@@ -15,6 +15,8 @@ class Connection {
     private int $last_message_timestamp; 
     private bool $ayt_sent;
 
+    private TerminalProperties $terminal_properties;
+
     /**
      * If filled, waiting for an answer from the telnet connection,
      * run the callback when it is fired.
@@ -204,6 +206,7 @@ class Connection {
      */
     private function determine_terminal_properties() {
         $term_props = new TerminalProperties();
+        $this->terminal_properties = $term_props; 
         $this->telnet_negotiate(
             // Ask TELNET client to use RFC1073 Window Size Option
             Command::IAC->and(
@@ -218,21 +221,32 @@ class Connection {
                     if ($message === 'IAC SB NAWS') {
                         $term_props->w = $this->read_short_raw();
                         $term_props->h = $this->read_short_raw();
+                        $term_props->initialized = true;
                         return true;
                     } else if ($message === 'IAC WONT NAWS') {
                         // This means TELNET client doesn't use NAWS.
                         $term_props->w = 80;
                         $term_props->h = 80;
+                        $term_props->initialized = true;
                         return true;
                     }
                     return false;
                 } catch (\Exception $e) {
                     $term_props->w = 80;
                     $term_props->h = 80;
+                    $term_props->initialized = true;
                     error_log('Raport failed with ' . $e->getMessage());
                     return false;
                 } 
             }
         );
     } 
+    /**
+    * Properties of the terminal in the client.
+    *
+    * @return TerminalProperties Properties of the terminal
+    */
+    public function properties(): TerminalProperties {
+        return $this->terminal_properties;
+    }
 }
