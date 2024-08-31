@@ -30,11 +30,14 @@ jobs:
       - name: Build the project
         run: composer dump-autoload
 
+      - name: Setup SSH Key
+        run: echo "$EC2_PEM" > /tmp/ec2.pem 
+
       - name: Remove remote directory
         run: ssh -t -o StrictHostKeyChecking=no -i /tmp/ec2.pem $EC2_USERNAME@$EC2_DOMAIN "rm -rf /home/$EC2_USERNAME/AtomTerm"
  
       - name: Sync to deployment server
-        run: rm -rf .git && echo "$EC2_PEM" > /tmp/ec2.pem && chmod 400 /tmp/ec2.pem && scp -o StrictHostKeyChecking=no -i /tmp/ec2.pem -r "${PWD}" $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm/
+        run: rm -rf .git && chmod 400 /tmp/ec2.pem && scp -o StrictHostKeyChecking=no -i /tmp/ec2.pem -r "${PWD}" $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm/
 
       - name: Run AtomTerm Service
         run: ssh -t -o StrictHostKeyChecking=no -i /tmp/ec2.pem $EC2_USERNAME@$EC2_DOMAIN "bash /home/$EC2_USERNAME/AtomTerm/sysenable.sh"
