@@ -3,7 +3,7 @@ Description=Telnet service for atom term.
 
 [Service]
 Type=simple
-ExecStart=/home/ubuntu/AtomTerm/
+ExecStart=/home/ubuntu/AtomTerm/start.sh
 
 [Install]
 WantedBy=default.target

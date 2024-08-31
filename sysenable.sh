@@ -3,9 +3,9 @@
 cd /home/ubuntu/AtomTerm
 
 if [ ! -f /etc/systemd/system/atomterm.service ]; then
-    cp atomterm.service /etc/systemd/system/atomterm.service
-    systemctl enable atomterm.service
-    systemctl start atomterm.service
+    sudo cp atomterm.service /etc/systemd/system/atomterm.service
+    sudo systemctl enable atomterm.service
+    sudo systemctl start atomterm.service
 fi
 
-systemctl restart atomterm.service
+sudo systemctl restart atomterm.service
