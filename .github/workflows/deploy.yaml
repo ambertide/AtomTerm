@@ -31,4 +31,7 @@ jobs:
         run: composer dump-autoload
       
       - name: Sync to deployment server
-        run: echo "$EC2_PEM" > /tmp/ec2.pem && chmod 400 /tmp/ec2.pem && scp -o StrictHostKeyChecking=no -i /tmp/ec2.pem -r "${PWD}" $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm
+        run: echo "$EC2_PEM" > /tmp/ec2.pem && chmod 400 /tmp/ec2.pem && scp -o StrictHostKeyChecking=no -i /tmp/ec2.pem -r "${PWD}" $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm/
+
+      - name: Run AtomTerm Service
+        run: ssh -o StrictHostKeyChecking=no -i /tmp/ec2.pem $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm/ './home/$EC2_USERNAME/AtomTerm/sysenable.sh'
