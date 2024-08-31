@@ -1,0 +1,9 @@
+[Unit]
+Description=Telnet service for atom term.
+
+[Service]
+Type=simple
+ExecStart=/home/ubuntu/AtomTerm/
+
+[Install]
+WantedBy=default.target

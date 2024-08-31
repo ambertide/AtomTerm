@@ -1,0 +1,34 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  EC2_PEM: |
+    ${{ secrets.EC2_PEM_FILE }}
+  EC2_DOMAIN: ${{ secrets.EC2_DOMAIN }}
+  EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+      
+      - name: Validate autoload setup
+        run: composer validate --strict
+      
+      - name: Build the project
+        run: composer dump-autoload
+      
+      - name: Sync to deployment server
+        run: tar cat $EC2_PEM > /tmp/ec2.pem && scp -i /tmp/ec2.pem -r . $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm
