@@ -31,4 +31,4 @@ jobs:
         run: composer dump-autoload
       
       - name: Sync to deployment server
-        run: cat $EC2_PEM > /tmp/ec2.pem && scp -i /tmp/ec2.pem -r . $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm
+        run: cat $EC2_PEM > /tmp/ec2.pem && scp -o StrictHostKeyChecking=no -i /tmp/ec2.pem -r . $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm
