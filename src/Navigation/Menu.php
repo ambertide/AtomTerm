@@ -52,10 +52,10 @@ class Menu extends Screen {
     public function process_menu_event(Event $event) {
         switch ($event) {
             case Event::NAV_UP_KEY_EVENT:
-                $this->hovered_index = min($this->hovered_index - 1, 0);
+                $this->hovered_index = max($this->hovered_index - 1, 0);
                 return true;
             case Event::NAV_DOWN_KEY_EVENT:
-                $this->hovered_index = min($this->hovered_index + 1, count($this->children));
+                $this->hovered_index = min($this->hovered_index + 1, count($this->children) - 1);
                 return true;
             default:
                 return false;
