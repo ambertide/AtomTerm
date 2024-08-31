@@ -1,9 +1,12 @@
 [Unit]
 Description=Telnet service for atom term.
+After=network-online.target
 
 [Service]
 Type=simple
 ExecStart=/home/ubuntu/AtomTerm/start.sh
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=default.target
