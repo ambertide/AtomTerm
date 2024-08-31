@@ -8,4 +8,5 @@ if [ ! -f /etc/systemd/system/atomterm.service ]; then
     sudo systemctl start atomterm.service
 fi
 
+sudo systemctl daemon-reload
 sudo systemctl restart atomterm.service
