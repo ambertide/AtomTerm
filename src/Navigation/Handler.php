@@ -31,9 +31,11 @@ class Handler {
         switch ($event) {
             case Event::NAV_BACK_KEY_EVENT:
                 // Try to go back a screen if user clicked back.
-                if ($this->current !== $this->root) {
+                if ($this->current->id() !== $this->root->id()) {
                     $this->current = $this->current->parent();
                     $should_rerender = true;
+                } else {
+                    $should_rerender = false;
                 }
                 break;
             case Event::NAV_ENTER_KEY_EVENT:
@@ -42,11 +44,15 @@ class Handler {
                     $next_scene = $this->current->hovered_child();
                     $this->current = $next_scene;
                     $should_rerender = true;
+                } else {
+                    $should_rerender = false;
                 }
                 break;
             default:
                 if ($this->current instanceof Menu) {
                     $should_rerender = $this->current->process_menu_event($event);
+                } else {
+                    $should_rerender = false;
                 }
                 break;
         }

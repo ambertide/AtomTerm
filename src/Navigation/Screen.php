@@ -8,6 +8,8 @@ abstract class Screen {
     private ScreenType $type;
     private string $title;
 
+    private string $_id;
+
     /**
      * Generate a navigation screen, which can be displayed in a
      * user's terminal.
@@ -22,6 +24,7 @@ abstract class Screen {
     ) {
         $this->type = $type;
         $this->title = $title;
+        $this->_id = bin2hex(random_bytes(12));
     }
 
     /**
@@ -45,5 +48,13 @@ abstract class Screen {
      */
     public function parent(): Screen {
         return $this->parent;
+    }
+
+    /**
+     * Get the id of the screen.
+     * @return string
+     */
+    public function id(): string {
+        return $this->_id;
     }
 }
