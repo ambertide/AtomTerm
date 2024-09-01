@@ -33,6 +33,6 @@ jobs:
       - name: Setup SSH Key
         run: echo "$GCP_KEY" > /tmp/gcp_key && chmod 400 /tmp/gcp_key
 
-      - name: Remove remote directory
-        run: ssh -t -o StrictHostKeyChecking=no -i /tmp/gcp_key $GCP_USERNAME@$GCP_DOMAIN "cd /home/$GCP_USERNAME/AtomTerm && ./refresh.sh"
+      - name: Trigger Restart
+        run: ssh -t -o StrictHostKeyChecking=no -i /tmp/gcp_key $GCP_USERNAME@$GCP_DOMAIN "cd /home/$GCP_USERNAME/AtomTerm && sudo ./refresh.sh"
  
