@@ -1,3 +1,6 @@
 #! /bin/env sh
 
-php /home/ubuntu/AtomTerm/index.php
+username=$(whoami)
+
+git pull
+php /home/$username/AtomTerm/index.php

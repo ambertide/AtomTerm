@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
 
 env:
-  EC2_PEM: |
-    ${{ secrets.EC2_PEM }}
-  EC2_DOMAIN: ${{ secrets.EC2_DOMAIN }}
-  EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+  GCP_KEY: |
+    ${{ secrets.GCP_KEY }}
+  GCP_DOMAIN: ${{ secrets.GCP_DOMAIN }}
+  GCP_USERNAME: ${{ secrets.GCP_USERNAME }}
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.2'
           tools: composer
       
       - name: Validate autoload setup
@@ -31,13 +31,8 @@ jobs:
         run: composer dump-autoload
 
       - name: Setup SSH Key
-        run: echo "$EC2_PEM" > /tmp/ec2.pem && chmod 400 /tmp/ec2.pem 
+        run: echo "$GCP_KEY" > /tmp/gcp_key && chmod 400 /tmp/gcp_key
 
       - name: Remove remote directory
-        run: ssh -t -o StrictHostKeyChecking=no -i /tmp/ec2.pem $EC2_USERNAME@$EC2_DOMAIN "rm -rf /home/$EC2_USERNAME/AtomTerm"
+        run: ssh -t -o StrictHostKeyChecking=no -i /tmp/gcp_key $GCP_USERNAME@$GCP_DOMAIN "cd /home/$GCP_USERNAME/AtomTerm && ./refresh.sh"
  
-      - name: Sync to deployment server
-        run: rm -rf .git && scp -o StrictHostKeyChecking=no -i /tmp/ec2.pem -r "${PWD}" $EC2_USERNAME@$EC2_DOMAIN:/home/$EC2_USERNAME/AtomTerm/
-
-      - name: Run AtomTerm Service
-        run: ssh -t -o StrictHostKeyChecking=no -i /tmp/ec2.pem $EC2_USERNAME@$EC2_DOMAIN "bash /home/$EC2_USERNAME/AtomTerm/sysenable.sh"

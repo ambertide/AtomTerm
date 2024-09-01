@@ -1,6 +1,6 @@
 #! /bin/env sh
 
-cd /home/ubuntu/AtomTerm
+git pull
 
 if [ ! -f /etc/systemd/system/atomterm.service ]; then
     sudo cp atomterm.service /etc/systemd/system/atomterm.service
