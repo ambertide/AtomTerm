@@ -1,6 +1,7 @@
 #! /bin/env sh
 
 git pull
+php ../composer.phar dump-autoload
 
 if [ ! -f /etc/systemd/system/atomterm.service ]; then
     sudo cp atomterm.service /etc/systemd/system/atomterm.service
