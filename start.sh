@@ -3,4 +3,5 @@
 username=$(whoami)
 
 git pull
-php /home/$username/AtomTerm/index.php
+php ../composer.phar dump-autoload
+php index.php
