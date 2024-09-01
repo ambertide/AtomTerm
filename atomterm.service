@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/home/ubuntu/AtomTerm/start.sh
+ExecStart=/home/egeemirozkan24/AtomTerm/start.sh
 Restart=on-failure
 RestartSec=30s
 
