@@ -97,7 +97,8 @@ class Connection {
      * Read from the socket connection.
      * @return string message, empty string if no message.
      */
-    public function read(): string {
+    public function read(): string|bool {
+        socket_clear_error();
         $message = socket_read(
             $this->socket,
             $this->buffer_length,
@@ -110,6 +111,7 @@ class Connection {
                 $raport_sucessful = $this->on_telnet_answer->call($this, $message);
                 if ($raport_sucessful) {
                     $this->on_telnet_answer = null;
+                    $this->last_message_timestamp = time();
                     return '';
                 }
             }
@@ -117,6 +119,14 @@ class Connection {
             $this->ayt_sent = false;
             $this->last_message_timestamp = time();
             return $message;
+        } else if ($message === false) {
+            $last_error = socket_last_error($this->socket);
+            if ($last_error !== 35) {
+                // Last error is 35 when socket has no incoming message.
+                error_log("Socket failed with unexpected error or closed by peer.");
+                // Signal close.
+                return false;
+            }
         }
         return '';
     }
@@ -127,6 +137,14 @@ class Connection {
      */
     public function id(): string {
         return $this->_id;
+    }
+
+    /**
+     * Close the connection to the underlying socket.
+     */
+    public function close(): void {
+        echo socket_last_error($this->socket);
+        socket_close($this->socket);
     }
 
     /**
@@ -178,7 +196,7 @@ class Connection {
      * @return void
      */
     private function flush_read_buffer() {
-        while (($this->read()) !== "" && (time() - $this->created_at) > 1) {}
+        while (($this->read()) !== '' && (time() - $this->created_at) > 1) {}
     }
 
     /**

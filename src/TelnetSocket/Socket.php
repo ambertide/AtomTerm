@@ -106,11 +106,11 @@ class Socket
         if ($socket === null) {
             $socket = $this->socket;
         }
-        $last_error = socket_last_error($this->socket);
+        $last_error = socket_last_error($socket);
         if ($last_error) {
-            print(socket_strerror($last_error) . PHP_EOL);
+            error_log($last_error);
         }
-        socket_clear_error();
+        socket_clear_error($socket);
     }
 
     /**
@@ -133,6 +133,11 @@ class Socket
                 if ($buffer) {
                     $this->on_message_recieved($buffer, $conn);
                     yield true;
+                } else if ($buffer === false) {
+                    $conn->close();
+                    unset($this->connections[$conn->id()]);
+                    $this->on_close($conn);
+                    yield false;
                 } else {
                     yield false;
                 }
@@ -151,6 +156,7 @@ class Socket
         $incoming_socket = @socket_accept($this->socket);
         if ($incoming_socket !== false) {
             // If there is an incoming socket register it.
+            $this->check_socket_error($incoming_socket);             
             $connection = new Connection($incoming_socket, $this->buffer_length);
             $this->option_negotiation($connection);
             $this->connections[$connection->id()] = $connection;

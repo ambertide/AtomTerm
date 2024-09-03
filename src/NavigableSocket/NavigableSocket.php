@@ -31,7 +31,7 @@ class NavigableSocket extends \TelnetSocket\Socket {
             $port,
             $backlog_count,
             3,
-            120
+            30
         );
     }
 
