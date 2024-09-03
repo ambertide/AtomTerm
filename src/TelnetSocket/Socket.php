@@ -38,7 +38,13 @@ class Socket
             SOCK_STREAM,
             SOL_TCP
         );
-        $this->check_socket_error();             
+        $this->check_socket_error();   
+        // Keep alive here is necessary for GCP
+        // as otherwise it decides to drop the connection to idle
+        // in 10 minutes.
+        // This is not necessary for clients themselves as we
+        // manually send them a AYT signal every 2 minutes instead.
+        socket_set_option($this->socket, SOL_SOCKET, SO_KEEPALIVE, 60);          
         error_log('Binding socket...');
         $is_bound = socket_bind(
             $this->socket,
