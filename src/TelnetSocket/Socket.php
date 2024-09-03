@@ -40,11 +40,15 @@ class Socket
         );
         $this->check_socket_error();             
         error_log('Binding socket...');
-        socket_bind(
+        $is_bound = socket_bind(
             $this->socket,
             $ip,
             $port
         );
+        if (!$is_bound) {
+            error_log('Failure to bind socket, exiting.');
+            exit(1);
+        }
         error_log('Socket Bound');
         $this->check_socket_error();             
         // Don't block on connections.
