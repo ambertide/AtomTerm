@@ -69,6 +69,7 @@ class NavigableSocket extends \TelnetSocket\Socket {
         parent::on_connect($connection);
         $connection->clear_screen();
         $this->bind_nav_handler($connection);
+        error_log('Nav handler count: ' . count($this->navigation_handlers));
         $connection->write('Setting up connection...');
     }
 
