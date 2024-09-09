@@ -137,9 +137,9 @@ class Connection {
             return $message;
         } else if ($message === false) {
             $last_error = socket_last_error($this->socket);
-            if ($last_error !== 35) {
-                // Last error is 35 when socket has no incoming message.
-                error_log("Socket failed with unexpected error or closed by peer.");
+            if ($last_error !== 35 && $last_error !== 11) {
+                // Last error is 35 (Mac OS) or 11 (Linux) when socket has no incoming message.
+                error_log("Socket failed with unexpected error or closed by peer with code " . $last_error);
                 // Signal close.
                 return false;
             }
