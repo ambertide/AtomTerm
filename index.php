@@ -1,6 +1,6 @@
 <?php
 
-$loader = require __DIR__ . '/vendor/autoload.php';
+$loader = require 'vendor/autoload.php';
 
 $config_location = __DIR__ . '/config.json';
 
