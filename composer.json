@@ -11,6 +11,10 @@
             "Config\\": "src/Config"
         }
     },
+    "require": {
+        "php": ">=8.3",
+        "ext-sockets": "*"
+    },
     "archive": {
         "exclude": [
             "menu/",
