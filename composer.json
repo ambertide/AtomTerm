@@ -27,5 +27,8 @@
     },
     "scripts": {
         "serve": "@php index.php"
-    }
+    },
+    "bin": [
+        "bin/serve.php"
+    ]
 }
