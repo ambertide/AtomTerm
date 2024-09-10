@@ -75,7 +75,7 @@ class Socket
         $this->check_socket_error();             
         // Don't block on connections.
         socket_set_nonblock($this->socket);
-        error_log('Socket listening...');
+        error_log("Socket listening on $ip at $port...");
         socket_listen($this->socket, $this->backlogCount);
         $this->check_socket_error();
         $this->buffer_length = $buffer_length;

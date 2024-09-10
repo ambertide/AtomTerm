@@ -1,5 +1,5 @@
 {
-    "name": "ambertide/atom_term",
+    "name": "ambertide/atomterm",
     "description": "Telnet server",
     "license": "AGPL-3.0-or-later",
     "autoload": {
@@ -7,7 +7,18 @@
             "NavigableSocket\\": "src/NavigableSocket",
             "TelnetSocket\\": "src/TelnetSocket",
             "Navigation\\": "src/Navigation",
-            "FSNavigation\\": "src/FSNavigation"
+            "FSNavigation\\": "src/FSNavigation",
+            "Config\\": "src/Config"
         }
+    },
+    "archive": {
+        "exclude": [
+            "menu/",
+            ".github/",
+            "*.service",
+            "Dockerfile",
+            "refresh.sh",
+            "start.sh"
+        ]
     }
 }
