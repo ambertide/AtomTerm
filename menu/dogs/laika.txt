@@ -1,4 +1,4 @@
-Laika/Лайка
+Лайка
 
-Born sometime in 1954, Laika was launched to space in 1957 on board Sputnik 2, becoming the first mammal on space.
-Due to launch complications, Laika succumbed to heat and passed away on November 3, 1957.
+This document contains the cyrilic name of "Laika", first dog in space, her name here
+is used to show AtomTerm supports non-latin characters on width calculations.

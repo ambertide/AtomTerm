@@ -1,0 +1,4 @@
+A Document
+
+This is a document, a document includes textual information about a topic. You can
+use left arrow key to exit this document.

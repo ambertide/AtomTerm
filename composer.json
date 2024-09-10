@@ -24,5 +24,8 @@
             "refresh.sh",
             "start.sh"
         ]
+    },
+    "scripts": {
+        "serve": "@php index.php"
     }
 }
