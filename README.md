@@ -48,18 +48,29 @@ You can require this package using composer
 composer require ambertide/atomterm
 ```
 
+When this is done, `serve.php` will be added to your 
+`vendor/bin` directory (or wherever you put your vendor
+binaries), and you can execute it:
+
+```bash
+php vendor/bin/serve.php
+```
+
+This will then the server.
+
 ### With Docker
 
-You can also run this using the included docker file, however,
-Docker version of this package will look for your files under
-the "/static" directory of the docker host, as such you need
-to include a mount under /static.
+You can also run this using the included docker file,
+however, Docker version of this package will look for your 
+files under the "/static" directory of the docker host, as 
+such you need to include a mount under /static.
 
 ### Locally
 
-Finally, you can also locally install the repository itself. Although
-Atomterm does not have external dependencies, it does require a PHP
-installation with `sockets` extension enabled and above version 8.3.
+Finally, you can also locally install the repository 
+itself. Although Atomterm does not have external 
+dependencies, it does require a PHP installation with 
+`sockets` extension enabled and above version 8.3.
 
 ```bash
 git clone https://github.com/ambertide/AtomTerm.git`
